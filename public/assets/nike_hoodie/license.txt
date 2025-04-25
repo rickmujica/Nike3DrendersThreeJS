@@ -1,0 +1,11 @@
+Model Information:
+* title:	Nike Hoodie
+* source:	https://sketchfab.com/3d-models/nike-hoodie-959af9d4f1434ae3b024424e94b0eef2
+* author:	aabowschool (https://sketchfab.com/aabowschool)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Nike Hoodie" (https://sketchfab.com/3d-models/nike-hoodie-959af9d4f1434ae3b024424e94b0eef2) by aabowschool (https://sketchfab.com/aabowschool) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
