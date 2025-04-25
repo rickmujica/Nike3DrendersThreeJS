@@ -39,41 +39,56 @@ const models = {
 
 let currentModel = null;
 
-// Función para cargar un modelo
+// Add this at the top of your file after the imports
+const loaderContainer = document.querySelector('.loader-container');
+
+// Modify your loadModel function
 function loadModel(modelPath) {
+    // Show loader
+    loaderContainer.style.display = 'flex';
+
     if (currentModel) {
-      scene.remove(currentModel);
+        scene.remove(currentModel);
     }
   
-    loader.load(modelPath, function (gltf) {
-      currentModel = gltf.scene;
+    loader.load(modelPath, 
+        // Success callback
+        function (gltf) {
+            currentModel = gltf.scene;
   
-      // Ajuste específico para Ricks_Jordan.glb
-      if (modelPath.includes('Ricks_Jordan.glb')) {
-        currentModel.position.y = -0.6; // Ajusta este valor según necesites
-        // currentModel.scale.set(0.5, 0.5, 0.5); // Ajusta la escala si es necesario
-      }
+            if (modelPath.includes('Ricks_Jordan.glb')) {
+                currentModel.position.y = -0.6;
+            }
   
-      scene.add(currentModel);
+            scene.add(currentModel);
   
-      // Centra la cámara en el modelo
-      const boundingBox = new THREE.Box3().setFromObject(currentModel);
-      const center = boundingBox.getCenter(new THREE.Vector3());
-      const size = boundingBox.getSize(new THREE.Vector3());
-      const maxDim = Math.max(size.x, size.y, size.z);
-      const fov = camera.fov * (Math.PI / 180);
-      const cameraZ = Math.abs(maxDim / Math.sin(fov / 2));
+            const boundingBox = new THREE.Box3().setFromObject(currentModel);
+            const center = boundingBox.getCenter(new THREE.Vector3());
+            const size = boundingBox.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const fov = camera.fov * (Math.PI / 180);
+            const cameraZ = Math.abs(maxDim / Math.sin(fov / 2));
       
-      // Ajusta la posición de la cámara
-      camera.position.set(center.x, center.y, cameraZ * 0.8);
-      camera.lookAt(center);
-      controls.update();
-    },
-    undefined,
-    function (error) {
-      console.error(error);
-    });
-  }
+            camera.position.set(center.x, center.y, cameraZ * 0.8);
+            camera.lookAt(center);
+            controls.update();
+
+            // Hide loader when model is ready
+            loaderContainer.style.display = 'none';
+        },
+        // Progress callback
+        function (xhr) {
+            // Optional: You can show loading progress
+            console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+        },
+        // Error callback
+        function (error) {
+            console.error(error);
+            // Hide loader even if there's an error
+            loaderContainer.style.display = 'none';
+        }
+    );
+}
 
 // Event listeners para los botones
 document
