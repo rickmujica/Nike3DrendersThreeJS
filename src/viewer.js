@@ -196,28 +196,33 @@ export async function createViewer(canvas, { onProgress } = {}) {
     idleTimer = setTimeout(() => (autoRotate = true), 6000);
   }
 
-  // Arrastre con un dedo o el mouse, pellizco con dos dedos.
+  // Arrastre con un dedo o el mouse, pellizco con dos dedos. Los eventos solo
+  // acumulan el movimiento; el giro se aplica en el bucle de dibujo, una vez
+  // por cuadro, y al soltar queda la inercia del último gesto.
+  const ROTATE_SPEED = 0.008;
   const pointers = new Map();
+  const drag = { dx: 0, dy: 0 };
   let pinchStart = 0;
   let moved = 0;
+  let hoverAt = null;
   canvas.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
     canvas.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     moved = 0;
+    orbit.vYaw = 0;
+    orbit.vPitch = 0;
     if (pointers.size === 2) {
       const [a, b] = [...pointers.values()];
       pinchStart = Math.hypot(a.x - b.x, a.y - b.y);
     }
+    canvas.style.cursor = 'grabbing';
     wake();
   });
   canvas.addEventListener('pointermove', (e) => {
     const prev = pointers.get(e.pointerId);
     if (!prev) {
-      if (e.pointerType === 'mouse') {
-        const zone = pick(e.clientX, e.clientY);
-        canvas.style.cursor = zone ? 'pointer' : 'grab';
-        api.onHover?.(zone);
-      }
+      if (e.pointerType === 'mouse') hoverAt = { x: e.clientX, y: e.clientY };
       return;
     }
     const dx = e.clientX - prev.x;
@@ -225,18 +230,18 @@ export async function createViewer(canvas, { onProgress } = {}) {
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     moved += Math.abs(dx) + Math.abs(dy);
     if (pointers.size === 1) {
-      orbit.vYaw = -dx * 0.0065;
-      orbit.vPitch = dy * 0.005;
-      canvas.style.cursor = 'grabbing';
+      drag.dx += dx;
+      drag.dy += dy;
     } else if (pointers.size === 2) {
       const [a, b] = [...pointers.values()];
       const d = Math.hypot(a.x - b.x, a.y - b.y);
-      if (pinchStart) orbit.targetDistance *= pinchStart / d;
+      if (pinchStart && d > 0) orbit.targetDistance *= pinchStart / d;
       pinchStart = d;
     }
     wake();
   });
   const release = (e) => {
+    if (!pointers.has(e.pointerId)) return;
     const wasTap = pointers.size === 1 && moved < 6;
     pointers.delete(e.pointerId);
     if (pointers.size < 2) pinchStart = 0;
@@ -248,12 +253,15 @@ export async function createViewer(canvas, { onProgress } = {}) {
   };
   canvas.addEventListener('pointerup', release);
   canvas.addEventListener('pointercancel', release);
-  canvas.addEventListener('pointerleave', () => api.onHover?.(null));
+  canvas.addEventListener('pointerleave', () => {
+    hoverAt = null;
+    api.onHover?.(null);
+  });
   canvas.addEventListener(
     'wheel',
     (e) => {
       e.preventDefault();
-      orbit.targetDistance *= Math.exp(e.deltaY * 0.0012);
+      orbit.targetDistance *= Math.exp(Math.max(-100, Math.min(100, e.deltaY)) * 0.0015);
       wake();
     },
     { passive: false },
@@ -294,24 +302,67 @@ export async function createViewer(canvas, { onProgress } = {}) {
     }
   }
 
+  let autoSpeed = 0;
+  let last = performance.now();
   function tick(now) {
     if (disposed) return;
-    if (autoRotate && !pointers.size) orbit.vYaw = orbit.vYaw * 0.9 + 0.0016 * 0.1;
-    orbit.yaw += orbit.vYaw;
-    orbit.pitch = Math.min(limits.maxPitch, Math.max(limits.minPitch, orbit.pitch + orbit.vPitch));
-    if (!pointers.size) {
-      orbit.vYaw *= 0.92;
-      orbit.vPitch *= 0.85;
-    } else {
-      orbit.vYaw = 0;
+    // Pasos normalizados a 60 cuadros por segundo, para que el giro y la
+    // inercia se sientan igual en pantallas de 60 y de 120 Hz.
+    const step = Math.min(3, (now - last) / (1000 / 60));
+    last = now;
+    let changed = false;
+
+    if (pointers.size === 1) {
+      const yaw = -drag.dx * ROTATE_SPEED;
+      const pitch = drag.dy * ROTATE_SPEED * 0.8;
+      orbit.yaw += yaw;
+      orbit.pitch += pitch;
+      // Velocidad suavizada del arrastre, para la inercia al soltar.
+      orbit.vYaw = orbit.vYaw * 0.5 + (yaw / step) * 0.5;
+      orbit.vPitch = orbit.vPitch * 0.5 + (pitch / step) * 0.5;
+      changed = yaw !== 0 || pitch !== 0;
+    } else if (!pointers.size) {
+      const decay = Math.pow(0.92, step);
+      orbit.vYaw *= decay;
+      orbit.vPitch *= decay;
+      if (Math.abs(orbit.vYaw) < 1e-5) orbit.vYaw = 0;
+      if (Math.abs(orbit.vPitch) < 1e-5) orbit.vPitch = 0;
+      orbit.yaw += orbit.vYaw * step;
+      orbit.pitch += orbit.vPitch * step;
+      changed = orbit.vYaw !== 0 || orbit.vPitch !== 0;
+    }
+    drag.dx = 0;
+    drag.dy = 0;
+
+    // Giro automático en reposo, que arranca y frena suave.
+    autoSpeed += ((autoRotate && !pointers.size ? 0.0025 : 0) - autoSpeed) * Math.min(1, 0.04 * step);
+    if (Math.abs(autoSpeed) > 1e-6) {
+      orbit.yaw += autoSpeed * step;
+      changed = true;
+    }
+
+    const pitch = Math.min(limits.maxPitch, Math.max(limits.minPitch, orbit.pitch));
+    if (pitch !== orbit.pitch) {
+      orbit.pitch = pitch;
       orbit.vPitch = 0;
     }
     orbit.targetDistance = Math.min(limits.maxDist, Math.max(limits.minDist, orbit.targetDistance));
-    const dd = (orbit.targetDistance - orbit.distance) * 0.15;
-    orbit.distance += dd;
+    const dd = (orbit.targetDistance - orbit.distance) * Math.min(1, 0.2 * step);
+    if (Math.abs(dd) > 1e-5) {
+      orbit.distance += dd;
+      changed = true;
+    }
+
+    // Una sola consulta de pieza bajo el mouse por cuadro.
+    if (hoverAt && !pointers.size) {
+      const zone = pick(hoverAt.x, hoverAt.y);
+      canvas.style.cursor = zone ? 'pointer' : 'grab';
+      api.onHover?.(zone);
+      hoverAt = null;
+    }
+
     updateGlow(now);
-    const moving = Math.abs(orbit.vYaw) > 1e-5 || Math.abs(orbit.vPitch) > 1e-5 || Math.abs(dd) > 1e-5;
-    if (moving || dirty) {
+    if (changed || dirty) {
       renderer.render(frame());
       dirty = false;
     }
