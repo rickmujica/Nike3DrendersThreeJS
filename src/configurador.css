@@ -81,6 +81,29 @@ button {
   color: var(--muted);
 }
 
+.back {
+  position: absolute;
+  top: 26px;
+  right: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.6);
+  font-size: 12px;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.back:hover {
+  color: var(--text);
+  border-color: var(--line-strong);
+}
+
 .hint {
   position: absolute;
   left: 50%;
@@ -415,6 +438,11 @@ input:focus-visible {
 
   .hint {
     bottom: 14px;
+  }
+
+  .back {
+    top: 18px;
+    right: 16px;
   }
 
   .presets {

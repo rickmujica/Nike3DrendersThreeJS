@@ -3,80 +3,55 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Configurador 3D de zapatillas en tiempo real, hecho con Crucible." />
+    <meta name="description" content="Galería de modelos 3D de calzado y ropa deportiva, con un configurador interactivo." />
     <meta name="theme-color" content="#0a0a0a" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <title>Configurador 3D · Ricardo Urbieta</title>
+    <title>Renders 3D · Ricardo Urbieta</title>
   </head>
   <body>
-    <main class="app">
-      <section class="stage" aria-label="Vista 3D de la zapatilla">
-        <canvas id="scene" aria-label="Zapatilla en 3D. Arrastra para girar y usa la rueda o pellizca para acercar."></canvas>
-        <div class="loader" id="loader" role="status">
-          <div class="loader-bar"><span id="loader-fill"></span></div>
-          <p id="loader-text">Cargando modelo…</p>
-        </div>
-        <header class="brand">
+    <main class="gallery">
+      <canvas id="scene" aria-label="Modelo 3D. Arrastra para girar y usa la rueda o pellizca para acercar."></canvas>
+
+      <header class="topbar">
+        <div class="brand">
           <span class="dot"></span>
           <div>
-            <h1>Runner 36</h1>
-            <p>Configurador 3D</p>
-          </div>
-        </header>
-        <p class="hint" id="hint">Arrastra para girar · Toca una pieza para editarla</p>
-        <div class="photo" id="photo" hidden>
-          <div class="photo-card">
-            <img id="photo-img" alt="Foto renderizada con path tracing" />
-            <div class="photo-actions">
-              <span id="photo-meta"></span>
-              <a class="btn" id="photo-download" download="mi-runner-36.png">Descargar</a>
-              <button class="btn ghost" id="photo-close" type="button">Cerrar</button>
-            </div>
+            <h1>Renders 3D</h1>
+            <p>Galería interactiva</p>
           </div>
         </div>
+        <span class="counter" id="counter" aria-live="polite"></span>
+      </header>
+
+      <section class="info" aria-live="polite">
+        <p class="eyebrow" id="model-kind"></p>
+        <h2 id="model-name"></h2>
+        <p class="description" id="model-description"></p>
+        <div class="info-actions" id="model-actions"></div>
       </section>
 
-      <aside class="panel" aria-label="Opciones de personalización">
-        <div class="panel-section">
-          <h2>Combinaciones</h2>
-          <div class="presets" id="presets"></div>
-        </div>
+      <div class="loader" id="loader" role="status" hidden>
+        <div class="loader-bar"><span id="loader-fill"></span></div>
+        <p id="loader-text">Cargando…</p>
+      </div>
 
-        <div class="panel-section">
-          <h2>Pieza</h2>
-          <div class="zones" id="zones" role="tablist"></div>
-        </div>
+      <nav class="picker" aria-label="Modelos">
+        <button class="arrow" id="prev" type="button" aria-label="Modelo anterior">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
+        </button>
+        <div class="tabs" id="tabs" role="tablist"></div>
+        <button class="arrow" id="next" type="button" aria-label="Modelo siguiente">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+        </button>
+      </nav>
 
-        <div class="panel-section">
-          <div class="row-title">
-            <h2>Color</h2>
-            <label class="custom">
-              <input type="color" id="custom-color" aria-label="Color personalizado" />
-              <span>Personalizado</span>
-            </label>
-          </div>
-          <div class="swatches" id="swatches"></div>
-        </div>
+      <div class="corner">
+        <button class="chip" id="autorotate" type="button" aria-pressed="true">Giro automático</button>
+        <button class="chip" id="reset" type="button">Centrar</button>
+      </div>
 
-        <div class="panel-section">
-          <h2>Acabado</h2>
-          <div class="finishes" id="finishes" role="radiogroup"></div>
-        </div>
-
-        <div class="panel-actions">
-          <button class="btn ghost" id="random" type="button">Aleatorio</button>
-          <button class="btn" id="shoot" type="button">Foto HD</button>
-        </div>
-
-        <footer class="credits">
-          Modelo “Nike Air Zoom Pegasus 36” de
-          <a href="https://sketchfab.com/quaz30" target="_blank" rel="noreferrer">quaz30</a>
-          (CC BY 4.0), recoloreado. Motor 3D:
-          <a href="https://github.com/codepawl/crucible" target="_blank" rel="noreferrer">Crucible</a>.
-          Proyecto de demostración sin relación con Nike.
-        </footer>
-      </aside>
+      <footer class="credits" id="credits"></footer>
     </main>
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/galeria.js"></script>
   </body>
 </html>

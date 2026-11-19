@@ -26,8 +26,8 @@ npm install
 npm run dev
 ```
 
-- `/` es el configurador.
-- `/visor.html` es el visor original con three.js (Pegasus, Jordan y hoodie).
+- `/` es la galería con los cuatro modelos (three.js). La Pegasus tiene un botón que lleva al configurador.
+- `/configurador.html` es el configurador (Crucible).
 
 Para regenerar las zonas y las texturas (requiere Python con numpy y Pillow):
 
