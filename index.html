@@ -1,22 +1,57 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <link rel="stylesheet" href="/style.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite App</title>
+    <meta name="description" content="Galería de modelos 3D de calzado y ropa deportiva, con un configurador interactivo." />
+    <meta name="theme-color" content="#0a0a0a" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <title>Renders 3D · Ricardo Urbieta</title>
   </head>
   <body>
-    <div class="loader-container">
-      <div class="loader"></div>
-    </div>
-    <div class="controls">
-      <button id="nike_pegasus">Nike Pegasus</button>
-      <button id="fake_jordan">Fake Jordan</button>
-      <button id="ricks_jordan">Rick's Jordan</button>
-      <button id="nike_hoodie">Nike Hoodie</button>
-    </div>
-    <script type="module" src="/main2.js"></script>
+    <main class="gallery">
+      <canvas id="scene" aria-label="Modelo 3D. Arrastra para girar y usa la rueda o pellizca para acercar."></canvas>
+
+      <header class="topbar">
+        <div class="brand">
+          <span class="dot"></span>
+          <div>
+            <h1>Renders 3D</h1>
+            <p>Galería interactiva</p>
+          </div>
+        </div>
+        <span class="counter" id="counter" aria-live="polite"></span>
+      </header>
+
+      <section class="info" aria-live="polite">
+        <p class="eyebrow" id="model-kind"></p>
+        <h2 id="model-name"></h2>
+        <p class="description" id="model-description"></p>
+        <div class="info-actions" id="model-actions"></div>
+      </section>
+
+      <div class="loader" id="loader" role="status" hidden>
+        <div class="loader-bar"><span id="loader-fill"></span></div>
+        <p id="loader-text">Cargando…</p>
+      </div>
+
+      <nav class="picker" aria-label="Modelos">
+        <button class="arrow" id="prev" type="button" aria-label="Modelo anterior">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
+        </button>
+        <div class="tabs" id="tabs" role="tablist"></div>
+        <button class="arrow" id="next" type="button" aria-label="Modelo siguiente">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+        </button>
+      </nav>
+
+      <div class="corner">
+        <button class="chip" id="autorotate" type="button" aria-pressed="true">Giro automático</button>
+        <button class="chip" id="reset" type="button">Centrar</button>
+      </div>
+
+      <footer class="credits" id="credits"></footer>
+    </main>
+    <script type="module" src="/src/galeria.js"></script>
   </body>
 </html>
